@@ -12,20 +12,10 @@ Validaciones: comprobar número de argumentos y permisos de escritura en la ruta
 # Uso: validar_argumentos <num_esperado> "$@"
 
 validar_argumentos() {
-  if [ $# -lt 1 ]; then
-    echo "Error interno en validación"
+  if [ $1 -gt $2 ]; then
+    echo "debe haber $1 argumentos"
     return 1
   fi
-
-  esperados=$1
-  shift
-
-  if [ $# -ne "$esperados" ]; then
-    echo "Error: se necesitan $esperados argumentos"
-    return 1
-  fi
-
-  return 0
 }
 
 #1. 
@@ -33,27 +23,7 @@ crear_directorio() {
 
   validar_argumentos 1 "$@" || return 1
 
-  ruta=$1
-  padre=$(dirname "$ruta")
 
-  if [ ! -d "$padre" ]; then
-    echo "Error: la ruta padre no existe"
-    return 1
-  fi
-
-  if [ ! -w "$padre" ]; then
-    echo "Error: no tienes permisos de escritura en la ruta padre"
-    return 1
-  fi
-
-  if [ -d "$ruta" ]; then
-    echo "Directorio '$ruta' ya existe"
-  else
-    mkdir -p "$ruta"
-    echo "Directorio '$ruta' creado"
-  fi
-
-  return 0
 }
 
 ############################################
@@ -63,24 +33,20 @@ buscar_archivos_grandes() {
 
   validar_argumentos 2 "$@" || return 1
 
-  ruta=$1
-  size_mb=$2
-  size_bytes=$(( size_mb * 1024 * 1024 ))
+  bytes=$(( $2 * 1024 * 1024 ))
 
-  if [ ! -d "$ruta" ]; then
-    echo "Error: el directorio no existe"
+  if [ ! -d $1 ]; then
+    echo "el directorio no existe"
     return 1
   fi
 
-  resultados=$(find "$ruta" -type f -size +"$size_bytes"c)
+  resultados=$(find $1 -type f -size +"$bytes"c)
 
   if [ -z "$resultados" ]; then
-    echo "No se encontraron archivos > $size_mb MB"
+    echo "No se encontraron archivos > $2 MB"
   else
     echo "$resultados"
   fi
-
-  return 0
 }
 
 ############################################
@@ -93,8 +59,6 @@ buscar_por_extension() {
     return 1
   fi
 
-  ruta=$1
-  ext=$2
   modo=$3
 
   if [ ! -d "$ruta" ]; then
@@ -102,7 +66,7 @@ buscar_por_extension() {
     return 1
   fi
 
-  resultados=$(find "$ruta" -type f -name "*.$ext")
+  resultados=$(find $1 -type f -name "*.$2")
 
   if [ "$modo" = "-c" ]; then
     echo "$resultados" | wc -l
